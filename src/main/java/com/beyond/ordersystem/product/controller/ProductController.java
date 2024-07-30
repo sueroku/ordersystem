@@ -30,7 +30,8 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/product/create")
     public ResponseEntity<Object> memberCreate(@ModelAttribute ProductSaveReqDto dto){ // mutipart form 데이터로 받아용 그래서 그대로 받아용
-        Product product = productService.productCreate(dto);
+//        Product product = productService.productCreate(dto);
+        Product product = productService.productAwsCreate(dto);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.CREATED, "상품이 등록되었습니다.", product);
         return new ResponseEntity<>(commonResDto,HttpStatus.CREATED);
     }

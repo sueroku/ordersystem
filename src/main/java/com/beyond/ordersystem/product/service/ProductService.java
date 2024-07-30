@@ -45,10 +45,31 @@ public class ProductService {
         return product;
     }
 
+    @Transactional
+    public Product productAwsCreate(ProductSaveReqDto dto){
+        MultipartFile image = dto.getProductImage();
+        Product product;
+        try{
+            product = productRepository.save(dto.toEntity());
+            byte[] bytes = image.getBytes();
+            Path path = Paths.get("C:/Users/Playdata/Desktop/tmp",
+                    product.getId()+ "_" + image.getOriginalFilename());
+            Files.write(path, bytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+            product.updateImagePath(path.toString());
+        }catch (IOException e){ // 트라이-캐치 때문에 트랜잭션 처리때문에
+            throw new RuntimeException("이미지 저장 실패"); // 여기서 예외를 던져용
+        }
+        return product;
+    }
+
+
+
     public Page<ProductListResDto> productList(Pageable pageable){
         Page<Product> products = productRepository.findAll(pageable);
         return products.map(a->a.listFromEntity());
     }
+
+
 
 }
 

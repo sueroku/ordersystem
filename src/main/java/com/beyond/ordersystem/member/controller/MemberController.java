@@ -60,7 +60,7 @@ public class MemberController {
         String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getRole().toString());
         String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), member.getRole().toString());
 
-//        REDIS에 EMAIL과 RT를 KET:VALUE로 하여 저장
+//        REDIS에 EMAIL과 RT를 KET:VALUE로 하여 저장 // 멀티서버에서 해당 서버 메모리에만 저장하면 접근하기 어렵거나, 탈취시 레디스에서 삭제하여 범죄를 방지한다.
         redisTemplate.opsForValue().set(member.getEmail(), refreshToken, 240, TimeUnit.HOURS); //240시간
         //        생성된 토큰을 commonResDto에 담아 사용자에게 return
         Map<String, Object> loginInfo = new HashMap<>();
