@@ -4,6 +4,7 @@ package com.beyond.ordersystem.member.service;
 import com.beyond.ordersystem.member.domain.Member;
 import com.beyond.ordersystem.member.dto.MemberListResDto;
 import com.beyond.ordersystem.member.dto.MemberLoginDto;
+import com.beyond.ordersystem.member.dto.MemberResetPasswordReqDto;
 import com.beyond.ordersystem.member.dto.MemberSaveReqDto;
 import com.beyond.ordersystem.member.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public class MemberService {
         if(memberRepository.findByEmail(dto.getEmail()).isPresent()){
             throw new IllegalArgumentException("존재하는 회원의 이메일입니다.");
         }
+        if(dto.getPassword().length()<8){
+            throw new IllegalArgumentException("비밀번호가 너무 짧습니다.");
+        }
         return memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
     }
 
@@ -59,6 +63,17 @@ public class MemberService {
     public MemberListResDto memberMyInfo(){ // 단일조회
         Member member = memberRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(()->new EntityNotFoundException("회원이 없습니다."));
         return member.listFromEntity();
+    }
+
+    @Transactional
+    public void memberResetPassword(MemberResetPasswordReqDto dto) { // MemberListResDto
+        Member member = memberRepository.findByEmail(dto.getEmail()).orElseThrow(() -> new EntityNotFoundException("회원이 없습니다."));
+        if (!passwordEncoder.matches(dto.getAsIsPassword(), member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+        member.resetPassword(passwordEncoder.encode(dto.getToBePassword()));
+//        memberRepository.save(member); // 안해도 된다.
+//        return member.listFromEntity(); // 전체적으로 reset 말고 update가 맞았을텐데.. 허허
     }
 }
 

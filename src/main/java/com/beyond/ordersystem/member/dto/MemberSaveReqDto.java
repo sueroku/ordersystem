@@ -13,6 +13,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MemberSaveReqDto {
+    @NotEmpty(message="name is essential")
     private String name;
     @NotEmpty(message="email is essential")
     private String email;

@@ -34,7 +34,7 @@ public class OrderingController {
         return new ResponseEntity<>(commonResDto,HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @GetMapping("/order/myorders")
     public ResponseEntity<?> myorderList(Pageable pageable){
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "주문목록이 조회되었습니다.", orderingService.myorderList(pageable));

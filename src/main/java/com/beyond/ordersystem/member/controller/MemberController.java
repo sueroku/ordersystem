@@ -4,10 +4,7 @@ import com.beyond.ordersystem.common.auth.JwtTokenProvider;
 import com.beyond.ordersystem.common.dto.CommonErrorDto;
 import com.beyond.ordersystem.common.dto.CommonResDto;
 import com.beyond.ordersystem.member.domain.Member;
-import com.beyond.ordersystem.member.dto.MemberListResDto;
-import com.beyond.ordersystem.member.dto.MemberLoginDto;
-import com.beyond.ordersystem.member.dto.MemberSaveReqDto;
-import com.beyond.ordersystem.member.dto.MemberRefreshDto;
+import com.beyond.ordersystem.member.dto.*;
 import com.beyond.ordersystem.member.service.MemberService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -20,10 +17,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.HashMap;
@@ -41,7 +35,7 @@ public class MemberController {
     private final RedisTemplate<String,Object> redisTemplate;
 
     @Autowired
-    public MemberController(MemberService memberService, JwtTokenProvider jwtTokenProvider, RedisTemplate<String, Object> template) {
+    public MemberController(MemberService memberService, JwtTokenProvider jwtTokenProvider, @Qualifier("2") RedisTemplate<String, Object> template) {
         this.memberService = memberService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.redisTemplate = template;
@@ -53,7 +47,7 @@ public class MemberController {
         return new ResponseEntity<>(commonResDto,HttpStatus.CREATED);
     }
 
-    @PostMapping("/doLogin")
+    @PostMapping("/doLogin") //patch? post? -- front axios.patch   axios.post
     public ResponseEntity<?> doLogin(@RequestBody MemberLoginDto dto){
         Member member = memberService.login(dto); // email password 일치하는지 검증
 //        일치할 경우 accessToken 생성
@@ -93,7 +87,7 @@ public class MemberController {
     @Value("${jwt.secretKeyRt}")
     private String secretKeyRt;
 
-    @PostMapping("/refresh-token")
+    @PostMapping("/refresh-token") // patch? post?
     public ResponseEntity<?> generateNewAccessToken(@RequestBody MemberRefreshDto dto){
         String rt = dto.getRefreshToken();
         Claims claims = null;
@@ -101,7 +95,7 @@ public class MemberController {
 //            코드를 통해 rt 검증
             claims = Jwts.parser().setSigningKey(secretKeyRt).parseClaimsJws(rt).getBody();
         }catch (Exception e){
-            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, "invalid refresh token"), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "invalid refresh token"), HttpStatus.BAD_REQUEST);
         }
         String email = claims.getSubject();
         String role = claims.get("role").toString();
@@ -111,7 +105,7 @@ public class MemberController {
 //        String storedRedisRt = redisTemplate.opsForValue().get(email).toString(); //  인텔리제이제안      String storedRedisRt = Objects.requireNonNull(redisTemplate.opsForValue().get(email)).toString();
 //        if(storedRedisRt == null || !storedRedisRt.equals(rt)){
         if(obj == null || !obj.toString().equals(rt)){
-            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.UNAUTHORIZED, "invalid refresh token"), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST, "invalid refresh token"), HttpStatus.BAD_REQUEST);
         }
 
         String newAt = jwtTokenProvider.createToken(email, role);
@@ -119,6 +113,13 @@ public class MemberController {
         Map<String, Object> info = new HashMap<>();
         info.put("token",newAt);
         CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "At is renewed", info);
+        return new ResponseEntity<>(commonResDto, HttpStatus.OK);
+    }
+
+    @PatchMapping("/member/reset-password")
+    public ResponseEntity<?> memberResetPassword(@RequestBody MemberResetPasswordReqDto dto){
+        memberService.memberResetPassword(dto);
+        CommonResDto commonResDto = new CommonResDto(HttpStatus.OK, "reset password", "ok"); // memberService.memberResetPassword(dto)
         return new ResponseEntity<>(commonResDto, HttpStatus.OK);
     }
 

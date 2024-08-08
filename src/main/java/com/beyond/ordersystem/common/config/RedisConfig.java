@@ -40,4 +40,52 @@ public class RedisConfig {
         return redisTemplate;
     }
 
+
+
+    @Bean
+    @Qualifier("3")
+    public RedisConnectionFactory stockFactory() {
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+        configuration.setHostName(host);
+        configuration.setPort(port);
+        // 2번 db 사용 - redis에서 select 2로 확인
+        configuration.setDatabase(2);
+        return new LettuceConnectionFactory(configuration);
+
+    }
+
+    @Bean(name = "redisTemplate")
+    @Qualifier("3")
+    public RedisTemplate<String, Object> stockRedisTemplate(@Qualifier("3") RedisConnectionFactory redisConnectionFactory){
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        // string 형태를 직렬화 시키게따 (java에 string으로 들어가게)
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        // 제이슨 직렬화 툴 세팅
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        // 주입받은 connection을 넣어줌
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        return redisTemplate;
+    }
+
+
+//    @Bean
+//    @Qualifier("3")
+//    public RedisConnectionFactory redisStockFactory(){
+//        RedisStandaloneConfiguration redisConfiguration = new RedisStandaloneConfiguration();
+//        redisConfiguration.setHostName(host);
+//        redisConfiguration.setPort(port);
+//        redisConfiguration.setDatabase(3);
+//        return new LettuceConnectionFactory(redisConfiguration);
+//    }
+//
+//    @Bean(name = "stockRedis")
+//    @Qualifier("3")
+//    public RedisTemplate<String, Object> stockRedisTemplateExec(@Qualifier("3") RedisConnectionFactory redisStockFactory){
+//        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+//        redisTemplate.setKeySerializer(new StringRedisSerializer());
+//        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+//        redisTemplate.setConnectionFactory(redisStockFactory);
+//        return redisTemplate;
+//    }
+
 }

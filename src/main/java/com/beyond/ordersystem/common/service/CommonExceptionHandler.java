@@ -29,7 +29,7 @@ public class CommonExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<CommonErrorDto> validHandler(MethodArgumentNotValidException e){
         e.printStackTrace();
-        CommonErrorDto errorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST,"error");
+        CommonErrorDto errorDto = new CommonErrorDto(HttpStatus.BAD_REQUEST,e.getFieldError().getDefaultMessage());
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
 

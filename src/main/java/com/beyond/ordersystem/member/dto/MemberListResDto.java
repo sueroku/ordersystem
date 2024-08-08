@@ -16,4 +16,5 @@ public class MemberListResDto {
     private String name;
     private String email;
     private Address address;
+    private int orderCount;
 }
