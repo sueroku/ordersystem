@@ -3,6 +3,7 @@ package com.beyond.ordersystem.ordering.service;
 import com.beyond.ordersystem.common.service.StockInventoryService;
 import com.beyond.ordersystem.member.domain.Member;
 import com.beyond.ordersystem.member.repository.MemberRepository;
+import com.beyond.ordersystem.ordering.controller.SseController;
 import com.beyond.ordersystem.ordering.domain.OrderDetail;
 import com.beyond.ordersystem.ordering.domain.OrderStatus;
 import com.beyond.ordersystem.ordering.domain.Ordering;
@@ -33,17 +34,19 @@ public class OrderingService {
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
     private final StockInventoryService stockInventoryService;
-    private final StockDecreaseEventHandler stockDecreaseEventHandler;
+//    private final StockDecreaseEventHandler stockDecreaseEventHandler;
+
+    private final SseController sseController;
 
     private final OrderDetailRepository orderDetailRepository; // 없어도 되는 겁니다. 없다고 생각하세용
 
     @Autowired
-    public OrderingService(OrderingRepository orderingRepository, MemberRepository memberRepository, ProductRepository productRepository, StockInventoryService stockInventoryService, StockDecreaseEventHandler stockDecreaseEventHandler, OrderDetailRepository orderDetailRepository) {
+    public OrderingService(OrderingRepository orderingRepository, MemberRepository memberRepository, ProductRepository productRepository, StockInventoryService stockInventoryService,SseController sseController, OrderDetailRepository orderDetailRepository) {
         this.orderingRepository = orderingRepository;
         this.memberRepository = memberRepository;
         this.productRepository = productRepository;
         this.stockInventoryService = stockInventoryService;
-        this.stockDecreaseEventHandler = stockDecreaseEventHandler;
+        this.sseController = sseController;
         this.orderDetailRepository = orderDetailRepository;
     }
 
@@ -67,7 +70,7 @@ public class OrderingService {
                 }
 //                rdb에 재고 업데이트   -   product.updateStockQuantity(dto.getProductCount()); 혹은 스케줄러...? db 터져 데드락 걸려 실시간 요청이 유실될 수 있어
 //                강사님 아이디어 : rabbitmq 를 통해 비동기적으로 이벤트 처리. // 다른 방법들도 있으니 잘 서치해보세요
-                stockDecreaseEventHandler.publish(new StockDecreaseEvent(product.getId(), dto.getProductCount()));
+//                stockDecreaseEventHandler.publish(new StockDecreaseEvent(product.getId(), dto.getProductCount()));
 
             }else{
                 if(product.getStockQuantity() < dto.getProductCount()){
@@ -83,6 +86,9 @@ public class OrderingService {
         }
 
         Ordering savedOrdering = orderingRepository.save(ordering);
+
+        sseController.publishMessage(savedOrdering.listFromEntity(),"admin@test.com"); // 여기에 보낼 사람
+
         return savedOrdering;
 
     }
