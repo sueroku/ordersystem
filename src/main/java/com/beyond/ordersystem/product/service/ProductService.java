@@ -78,7 +78,8 @@ public class ProductService {
             product = productRepository.save(dto.toEntity());
             byte[] bytes = image.getBytes();
             String fileName = product.getId()+ "_" + image.getOriginalFilename();
-            Path path = Paths.get("C:/Users/Playdata/Desktop/tmp", fileName);
+//            Path path = Paths.get("C:/Users/Playdata/Desktop/tmp", fileName);
+            Path path = Paths.get("/tmp/", fileName);
             Files.write(path, bytes, StandardOpenOption.CREATE, StandardOpenOption.WRITE); // local pc에 임시 저장
 //            aws에 pc에 저장된 파일을 업로드
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
