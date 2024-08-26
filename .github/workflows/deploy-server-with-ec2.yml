@@ -53,8 +53,6 @@ jobs:
             --spring.datasource.password=${{secrets.DB_PW}} \
             --cloud.aws.credentials.access-key=${{secrets.S3_KEY}} \
             --cloud.aws.credentials.secret-key=${{secrets.S3_SECRET}} > /home/ubuntu/app.log 2>&1 &
-            
-
 
       - name: copy jar to ec2 inst2
         uses: appleboy/scp-action@master
